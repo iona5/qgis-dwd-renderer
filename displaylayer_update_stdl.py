@@ -173,16 +173,12 @@ def createDisplayLayerFromStationsWithDate(datestring):
         QgsMapLayerRegistry.instance().removeMapLayer(outputLayer)
         outputLayer = processing.getObject(outputResult["OUTPUT"])
 
-
     #print outputLayer.featureCount()
-
 
     QgsMapLayerRegistry.instance().removeMapLayer(mem_layer)
     outputLayer.loadNamedStyle(VORONOI_LAYERSTYLE)
     QgsMapLayerRegistry.instance().addMapLayer(outputLayer)
 
-    #outputLayer.reload()
-    #iface.mapCanvas().refreshAllLayers()
     return outputLayer
 
 def updateDateAndExportComposerImageWithDate(date):
@@ -193,8 +189,6 @@ def updateDateAndExportComposerImageWithDate(date):
         outputlayer = createDisplayLayerFromStationsWithDate(datestring)
     else:
         outputlayer = updateDisplayLayerWithDate(datestring)
-
-
 
     # prepare composition
     mapSettings = QgsMapSettings()
