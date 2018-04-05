@@ -56,6 +56,12 @@ COMPOSER_TEMPLATE="C:/dwd-qgis/input/composer_template.qpt"
 #
 DO_DYNAMIC_GENERATION=True
 # ------------------------------------------------------------------------------#
+# Data Files
+#
+# path to the monthly splitted SQLite files. During loading the path will be
+# formatted with YYYYMM to load individual months
+PATH_DATA_FILES="C:/dwd-qgis/input/databases/split_10min_tu_%s.sqlite"
+# ------------------------------------------------------------------------------#
 # Dynamic Generation
 #
 # The "dynamic generation" takes into account if there is actually data available
@@ -82,7 +88,7 @@ ZOOM_TO_SHAPEFILE="C:/dwd-qgis/input/zoomExtent.shp"
 
 
 # QGIS Setup
-DATA_LAYER_FORMAT="%s station_data"
+
 
 project = QgsProject.instance()
 mapRegistry = QgsMapLayerRegistry.instance()
@@ -103,12 +109,9 @@ if PATH_CLIP is not None:
     CLIP_LAYER=QgsVectorLayer(PATH_CLIP, "clip layer", "ogr")
     mapRegistry.addMapLayer(CLIP_LAYER)
 
-# load sqlite3 files in a very stupid way:
-for month in ( 201607, 201608, 201609, 201610, 201611, 201612, 201701, 201702, 201703, 201704, 201705, 201706, 201707, 201708, 201709, 201710, 201711, 201712, 201801 ):
-    print "load data layer %s" % month
-    dataLayer = QgsVectorLayer("C:/dwd-qgis/input/databases/split_10min_tu_%s.sqlite" % month, DATA_LAYER_FORMAT % month, "ogr")
-    #print dataLayer.isValid()
-    mapRegistry.addMapLayer(dataLayer)
+# string to designate the individual data layers in the QGIS map registry:
+DATA_LAYER_FORMAT="%s station_data"
+
 
 
 class DwdScriptException(Exception):
@@ -271,6 +274,22 @@ def preflightChecks():
 
     templateDoc.setContent(templateContent, False)
 
+def loadDataFiles(fromDate, toDate):
+    # create the list of months to load:
+    monthList = []
+    delta = timedelta(days=30) # add a "month"
+    while(fromDate < toDate):
+        monthList.append(fromDate.strftime("%Y%m"))
+        fromDate += delta
+
+    # load sqlite3 files in a very stupid way:
+    for month in monthList:
+        print "load data for %s" % month
+        dataLayerFile = PATH_DATA_FILES % month
+        dataLayer = QgsVectorLayer(dataLayerFile, DATA_LAYER_FORMAT % month, "ogr")
+        if not dataLayer.isValid():
+            raise DwdScriptException("data layer file '%s' not found" % dataLayerFile )
+        mapRegistry.addMapLayer(dataLayer)
 
 
 
@@ -296,6 +315,8 @@ def main():
     if(deltaTime.days < 0):
         raise DwdScriptException("maxDate earlier than currentDate ?!??")
     estimatedFrameCount = ((deltaTime.days * 3600 + deltaTime.seconds ) / 600 ) * 25
+
+    loadDataFiles(currentDate, maxDate)
 
     counter = 0
     try:
