@@ -1,24 +1,27 @@
 import os, sys
 
+# The "QGIS prefix path", this is the path to the qgis-folder in the "apps" folder
+# of the QGIS installation
+# see https://docs.qgis.org/2.18/en/docs/pyqgis_developer_cookbook/intro.html#id8
+QGIS_PREFIX_PATH = 'C:/Program Files/QGIS 2.18/apps/qgis-ltr'
+
 # Append QGIS Python library to python search path
-sys.path.append('C:/Program Files/QGIS 2.18/apps/qgis-ltr/python')
-sys.path.append('C:/Program Files/QGIS 2.18/apps/qgis-ltr/python/plugins')
+sys.path.append(QGIS_PREFIX_PATH + '/python')
+sys.path.append(QGIS_PREFIX_PATH + '/python/plugins')
 
 # Append location of DLLs to current system PATH envrionment variable
-os.environ['PATH'] += ";C:/Program Files/QGIS 2.18/apps/qgis-ltr/bin"
+os.environ['PATH'] += ";" + QGIS_PREFIX_PATH + "/bin"
 # THIS SEEMS TO WORK!!!
-os.environ['QGIS_PREFIX_PATH'] = "c:/Program Files/QGIS 2.18/apps/qgis-ltr"
-
-# Examine new PATH environment variable
-#print os.environ['PATH']
+os.environ['QGIS_PREFIX_PATH'] = QGIS_PREFIX_PATH
 
 
 from qgis.core import *
 
-# THIS DOES NOT WORK!!!
-#QgsApplication.setPrefixPath("c:/Program Files/QGIS 2.18/apps/qgis-ltr", False)
+# the following is suggested to do, but DOES NOT WORK!!! Setting the prefix path via
+# os.environ DOES WORK!
+# QgsApplication.setPrefixPath("c:/Program Files/QGIS 2.18/apps/qgis-ltr", False)
 
-
+# init QGIS:
 qgs = QgsApplication([],True)
 qgs.initQgis()
 
@@ -32,62 +35,65 @@ from PyQt4.QtCore import QTimer
 import processing
 from processing.core.Processing import Processing
 
+#################################################################################
+# CONFIG SECTION                                                                #
+#################################################################################
 # timespan to render, format YYYYmmdd
 START="20161117"
 END="20161120"
-
+#
 # the amount of images the script should actually render, useful for debugging
 # to stop the script early, setting this to 0 will render the whole timespan
 RENDER_LIMIT=0
-
+#
 # folder where to put the image sequence
 RESULT_FOLDER="C:/dwd-qgis/result/"
-
+#
 # which composer template to use (extension .qpt)
 COMPOSER_TEMPLATE="C:/dwd-qgis/input/composer_template.qpt"
 # which style file to apply to the display layer (extension .qml)
 VORONOI_LAYERSTYLE="C:/dwd-qgis/input/layer_style.qml"
-
+#
 # if the display layer should be clipped after applying the data
 DO_CLIP=False
-
+#
 # if the composer map should be zoomed to a specific extent, define another
 # shapefile here. the composer map will be zoomed to the bounding box all the
 # features. Set to None if no zoom should be executed.
 ZOOM_TO_SHAPEFILE="C:/dwd-qgis/input/zoomExtent.shp"
+#
+#################################################################################
 
 
+# QGIS Setup
+DATA_LAYER_FORMAT="%s station_data"
 
 project = QgsProject.instance()
 mapRegistry = QgsMapLayerRegistry.instance()
-
-
-DATA_LAYER_FORMAT="%s station_data"
+templateDoc = QDomDocument() # variable to hold the style later
+Processing.initialize()
 
 # display layer to use in the static case (not recreating between runs), needs
-# to contain the referenced join field
+# to contain the referenced join field:
 STATIC_DISPLAY_LAYER = QgsVectorLayer("C:/dwd-qgis/input/stations_display.shp", "stations_10min_voronoi", "ogr")
-QgsMapLayerRegistry.instance().addMapLayer(STATIC_DISPLAY_LAYER)
-
+mapRegistry.addMapLayer(STATIC_DISPLAY_LAYER)
+# a point layer containing all the stations, is used in the dynamic case to create
+# a voronoi map from it:
 STATIONS_LAYER=QgsVectorLayer("C:/dwd-qgis/input/stations_10min_32632.shp", "stations_10min_32632", "ogr")
-QgsMapLayerRegistry.instance().addMapLayer(STATIONS_LAYER)
-
-
+mapRegistry.addMapLayer(STATIONS_LAYER)
 
 if(DO_CLIP):
+    # in the dynamic case, the generated voronoi layer may be clipped with another layer:
     CLIP_LAYER=QgsVectorLayer("C:/dwd-qgis/input/germany_32632.shp", "clip layer", "ogr")
-    QgsMapLayerRegistry.instance().addMapLayer(CLIP_LAYER)
+    mapRegistry.addMapLayer(CLIP_LAYER)
 
 # load sqlite3 files in a very stupid way:
 for month in ( 201607, 201608, 201609, 201610, 201611, 201612, 201701, 201702, 201703, 201704, 201705, 201706, 201707, 201708, 201709, 201710, 201711, 201712, 201801 ):
     print "load data layer %s" % month
     dataLayer = QgsVectorLayer("C:/dwd-qgis/input/databases/split_10min_tu_%s.sqlite" % month, DATA_LAYER_FORMAT % month, "ogr")
     #print dataLayer.isValid()
-    QgsMapLayerRegistry.instance().addMapLayer(dataLayer)
+    mapRegistry.addMapLayer(dataLayer)
 
-templateDoc = QDomDocument()
-
-Processing.initialize()
 
 class DwdScriptException(Exception):
     def __init__(self, value):
