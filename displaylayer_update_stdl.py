@@ -1,43 +1,11 @@
-import os, sys
-
+#################################################################################
+# CONFIG SECTION                                                                #
+#################################################################################
 # The "QGIS prefix path", this is the path to the qgis-folder in the "apps" folder
 # of the QGIS installation
 # see https://docs.qgis.org/2.18/en/docs/pyqgis_developer_cookbook/intro.html#id8
 QGIS_PREFIX_PATH = 'C:/Program Files/QGIS 2.18/apps/qgis-ltr'
-
-# Append QGIS Python library to python search path
-sys.path.append(QGIS_PREFIX_PATH + '/python')
-sys.path.append(QGIS_PREFIX_PATH + '/python/plugins')
-
-# Append location of DLLs to current system PATH envrionment variable
-os.environ['PATH'] += ";" + QGIS_PREFIX_PATH + "/bin"
-# THIS SEEMS TO WORK!!!
-os.environ['QGIS_PREFIX_PATH'] = QGIS_PREFIX_PATH
-
-
-from qgis.core import *
-
-# the following is suggested to do, but DOES NOT WORK!!! Setting the prefix path via
-# os.environ DOES WORK!
-# QgsApplication.setPrefixPath("c:/Program Files/QGIS 2.18/apps/qgis-ltr", False)
-
-# init QGIS:
-qgs = QgsApplication([],True)
-qgs.initQgis()
-
-import qgis
-import os.path
-from datetime import datetime
-from datetime import timedelta
-import time
-from PyQt4.QtXml import QDomDocument
-from PyQt4.QtCore import QTimer
-import processing
-from processing.core.Processing import Processing
-
-#################################################################################
-# CONFIG SECTION                                                                #
-#################################################################################
+#
 # timespan to render, format YYYYmmdd
 START="20161117"
 END="20161120"
@@ -86,6 +54,36 @@ ZOOM_TO_SHAPEFILE="C:/dwd-qgis/input/zoomExtent.shp"
 #
 #################################################################################
 
+import os, sys
+
+# Append QGIS Python library to python search path
+sys.path.append(QGIS_PREFIX_PATH + '/python')
+sys.path.append(QGIS_PREFIX_PATH + '/python/plugins')
+
+# Append location of DLLs to current system PATH envrionment variable
+os.environ['PATH'] += ";" + QGIS_PREFIX_PATH + "/bin"
+# THIS SEEMS TO WORK!!!
+os.environ['QGIS_PREFIX_PATH'] = QGIS_PREFIX_PATH
+
+from qgis.core import *
+
+# the following is suggested to do, but DOES NOT WORK!!! Setting the prefix path via
+# os.environ DOES WORK!
+# QgsApplication.setPrefixPath("c:/Program Files/QGIS 2.18/apps/qgis-ltr", False)
+
+# init QGIS:
+qgs = QgsApplication([],True)
+qgs.initQgis()
+
+import qgis
+import os.path
+from datetime import datetime
+from datetime import timedelta
+import time
+from PyQt4.QtXml import QDomDocument
+from PyQt4.QtCore import QTimer
+import processing
+from processing.core.Processing import Processing
 
 # QGIS Setup
 
