@@ -49,13 +49,29 @@ RENDER_LIMIT=0
 # folder where to put the image sequence
 RESULT_FOLDER="C:/dwd-qgis/result/"
 #
-# which composer template to use (extension .qpt)
-COMPOSER_TEMPLATE="C:/dwd-qgis/input/composer_template.qpt"
 # which style file to apply to the display layer (extension .qml)
 VORONOI_LAYERSTYLE="C:/dwd-qgis/input/layer_style.qml"
+# which composer template to use (extension .qpt)
+COMPOSER_TEMPLATE="C:/dwd-qgis/input/composer_template.qpt"
 #
-# if the display layer should be clipped after applying the data
-DO_CLIP=False
+DO_DYNAMIC_GENERATION=True
+# ------------------------------------------------------------------------------#
+# Dynamic Generation
+#
+# The "dynamic generation" takes into account if there is actually data available
+# for that point in time. It creates a Voronoi map as display layer from a
+# filtered station point layer.
+PATH_DYNAMIC="C:/dwd-qgis/input/stations_10min_32632.shp"
+# if the display layer should be clipped after applying the data, set this to as
+# value. Otherwise set this to 'None'
+PATH_CLIP="C:/dwd-qgis/input/germany_32632.shp"
+#-------------------------------------------------------------------------------#
+# Static Generation ( "no generation" to be exact ;) )
+#
+# Static generation just takes a alredy created voronoi layer file for
+# rendering
+PATH_STATIC="C:/dwd-qgis/input/stations_10min_32632"
+# ------------------------------------------------------------------------------#
 #
 # if the composer map should be zoomed to a specific extent, define another
 # shapefile here. the composer map will be zoomed to the bounding box all the
@@ -64,7 +80,6 @@ ZOOM_TO_SHAPEFILE="C:/dwd-qgis/input/zoomExtent.shp"
 #
 #################################################################################
 
-DO_DYNAMIC_GENERATION=True
 
 # QGIS Setup
 DATA_LAYER_FORMAT="%s station_data"
@@ -76,16 +91,16 @@ Processing.initialize()
 
 # display layer to use in the static case (not recreating between runs), needs
 # to contain the referenced join field:
-STATIC_DISPLAY_LAYER = QgsVectorLayer("C:/dwd-qgis/input/stations_display.shp", "stations_10min_voronoi", "ogr")
+STATIC_DISPLAY_LAYER = QgsVectorLayer(PATH_STATIC, "stations_10min_voronoi", "ogr")
 mapRegistry.addMapLayer(STATIC_DISPLAY_LAYER)
 # a point layer containing all the stations, is used in the dynamic case to create
 # a voronoi map from it:
-STATIONS_LAYER=QgsVectorLayer("C:/dwd-qgis/input/stations_10min_32632.shp", "stations_10min_32632", "ogr")
+STATIONS_LAYER=QgsVectorLayer(PATH_DYNAMIC, "stations_10min_32632", "ogr")
 mapRegistry.addMapLayer(STATIONS_LAYER)
 
-if(DO_CLIP):
+if PATH_CLIP is not None:
     # in the dynamic case, the generated voronoi layer may be clipped with another layer:
-    CLIP_LAYER=QgsVectorLayer("C:/dwd-qgis/input/germany_32632.shp", "clip layer", "ogr")
+    CLIP_LAYER=QgsVectorLayer(PATH_CLIP, "clip layer", "ogr")
     mapRegistry.addMapLayer(CLIP_LAYER)
 
 # load sqlite3 files in a very stupid way:
@@ -173,7 +188,7 @@ def createDisplayLayerFromStationsWithDate(datestring):
     outputLayer = processing.getObject(voronoiResult["OUTPUT"])
     QgsMapLayerRegistry.instance().addMapLayer(outputLayer)
 
-    if(DO_CLIP):
+    if(PATH_CLIP is not None):
         outputResult=processing.runalg('qgis:clip',outputLayer,CLIP_LAYER,None)
         #print outputLayer.dataProvider().dataSourceUri()
         #print CLIP_LAYER.dataProvider().dataSourceUri()
