@@ -64,6 +64,7 @@ ZOOM_TO_SHAPEFILE="C:/dwd-qgis/input/zoomExtent.shp"
 #
 #################################################################################
 
+DO_DYNAMIC_GENERATION=True
 
 # QGIS Setup
 DATA_LAYER_FORMAT="%s station_data"
@@ -223,7 +224,7 @@ def updateDateAndExportComposerImageWithDate(date):
 
 
     #export
-    imagepath = RESULT_FOLDER+"image_composer2_"+datestring+".png"
+    imagepath = os.path.join(RESULT_FOLDER,"image_composer2_"+datestring+".png")
     image = composition.printPageAsRaster(0)
     image.save(imagepath)
 
