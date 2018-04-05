@@ -44,7 +44,7 @@ PATH_CLIP="C:/dwd-qgis/input/germany_32632.shp"
 #
 # Static generation just takes a alredy created voronoi layer file for
 # rendering
-PATH_STATIC="C:/dwd-qgis/input/stations_10min_32632"
+PATH_STATIC="C:/dwd-qgis/input/stations_10min_voronoi.shp"
 # ------------------------------------------------------------------------------#
 #
 # if the composer map should be zoomed to a specific extent, define another
@@ -157,7 +157,7 @@ def updateDisplayLayerWithDate(datestring):
     # ...and join anew:
     STATIC_DISPLAY_LAYER = joinDataLayerWithDisplayLayer(dataLayer, STATIC_DISPLAY_LAYER)
 
-    # do some refreshing, not shure if necessary in a standalone script.
+    # do some refreshing, not sure if necessary in a standalone script.
     STATIC_DISPLAY_LAYER.reload()
     iface.mapCanvas().refreshAllLayers()
     return STATIC_DISPLAY_LAYER
@@ -200,7 +200,7 @@ def createDisplayLayerFromStationsWithDate(datestring):
 
     QgsMapLayerRegistry.instance().removeMapLayer(mem_layer)
     outputLayer.loadNamedStyle(VORONOI_LAYERSTYLE)
-    QgsMapLayerRegistry.instance().addMapLayer(outputLayer)
+    #QgsMapLayerRegistry.instance().addMapLayer(outputLayer)
 
     return outputLayer
 
